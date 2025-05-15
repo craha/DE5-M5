@@ -53,8 +53,8 @@ def writeToSQL(df, server, database, table):
         print(f"Error writing to the SQL Server: {e}")
 
 if __name__ == '__main__':
-    customer_path = 'Data/customer.csv'
-    loan_path = 'Data/book.csv'
+    customer_path = './Data/customer.csv'
+    loan_path = './Data/book.csv'
     date_columns = ['Book checkout', 'Book Returned']
     server = 'localhost'
     database = 'library'

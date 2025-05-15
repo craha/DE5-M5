@@ -1,6 +1,5 @@
 import unittest
 import pandas as pd
-import datetime as dt
 from datacleaner import loanCleaner
 
 # Min tests
@@ -24,7 +23,7 @@ class TestOperations(unittest.TestCase):
     def test_duration_as_int(self):
         self.assertTrue(pd.api.types.is_integer_dtype(self.test_data['duration']), "The duration is not an integer")
 
-    def test_duration_above_zero(self):
+    def test_duration_above_zero_valid(self):
         self.assertTrue(((self.test_data['duration']>=0) | (self.test_data['loan_valid']== False)).all(),"Duration is below zero but valid is not False")
 
 if __name__ == '__main__':

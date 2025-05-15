@@ -21,14 +21,16 @@ class Calculator:
         return round((self.a / self.b), 2)
 
 
-# Instantiation: turn this into main and take args with argparser or ENV variables
+# This should go into separate exercises .py files that import Calculator
+# ...or add into main and take args with argparser or ENV variables
 myCalc = Calculator(384, 97)
 print(f"Answer is: {myCalc.do_product()}")
 
 rows = []
 for x in range(1, 11):
     calc3x = Calculator(3,x)
-    rows.append({'factor': x, 'product': calc3x.do_product()}
+    rows.append({'factor': x, 
+                 'product': calc3x.do_product()}
                 )
 
 table3x = pd.DataFrame(rows)
