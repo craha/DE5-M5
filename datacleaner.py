@@ -38,7 +38,7 @@ def loanCleaner(df, loan_from, loan_to):
     df.loc[(df['duration'] < 0) | (df[loan_from] > pd.Timestamp.today()), 'loan_valid'] = False
     df.loc[df['duration'] >= 0, 'loan_valid'] = True
 
-    return df
+    return df, len(df.query('loan_valid == True'))
 
 def writeToSQL(df, server, database, table):
     connection_string = f'mssql+pyodbc://@{server}/{database}?trusted_connection=yes&driver=ODBC+Driver+17+for+SQL+Server'
@@ -56,20 +56,58 @@ if __name__ == '__main__':
     date_columns = ['Book checkout', 'Book Returned']
     server = 'localhost'
     database = 'library'
+    eng_msgs = []
+    load_label = 'Total records loaded'
+    dupe_label = 'Duplicate records dropped:'
+    na_label = 'Invalid (NA) records dropped'
+    date_label = 'Invalid (date) records dropped'
 
     # Customer data
+    entity = 'customer'
     customers = fileLoader(customer_path)
+    num_customers_original = len(customers)
+    eng_msgs.append({'Entity': entity, 
+                     'Label': load_label, 
+                     'Num Records': num_customers_original})
+
     customers = dupeCleaner(customers)
+    num_customers_deduped = len(customers)
+    cust_dupe_dropcount = num_customers_original - num_customers_deduped
+    eng_msgs.append({'Entity': entity, 
+                     'Label': dupe_label, 
+                     'Num Records': cust_dupe_dropcount})
+
     customers = naCleaner(customers)
+    num_customers_naCleaned = len(customers)
+    cust_na_dropcount = num_customers_deduped - num_customers_naCleaned
+    eng_msgs.append({'Entity': entity, 
+                     'Label': na_label, 
+                     'Num Records': cust_na_dropcount})
+
     fileSaver(customers,'customers_clean.csv')
     writeToSQL(customers, server, database, table='customer_bronze')
 
+    eng_df = pd.DataFrame(eng_msgs)
+    writeToSQL(eng_df, server, database, table='engineering')
+
     # Loan data
     loans = fileLoader(loan_path)
+    num_loans_original = len(loans)
+
     loans = dupeCleaner(loans)
+    num_loans_deduped = len(customers)
+    loans_dupe_dropcount = num_loans_original - num_loans_deduped 
+
     for col in date_columns:
         loans = dateCleaner(loans, col)
+    num_loans_dateCleaned = len(loans)
+    loans_date_dropcount = num_loans_deduped - num_loans_dateCleaned
+
     loans = naCleaner(loans)
-    loans = loanCleaner(loans, 'Book checkout', 'Book Returned')
+    num_loans_deduped = len(loans)
+    loans_dupe_dropcount = num_loans_original - num_loans_deduped 
+
+    loans, loans_valid_dropcount = loanCleaner(loans, 'Book checkout', 'Book Returned')
+
     fileSaver(loans, 'loans_clean.csv')
     writeToSQL(loans, server, database, table='loan_bronze')
