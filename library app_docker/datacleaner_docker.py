@@ -1,7 +1,5 @@
 import pandas as pd
 import datetime as dt
-from sqlalchemy import create_engine
-import pyodbc
 
 def fileLoader(csvpath):
     raw_data = pd.read_csv(csvpath)
@@ -40,18 +38,6 @@ def loanCleaner(df, loan_from, loan_to):
 
     return df, len(df.query('loan_valid == False'))
 
-def writeToSQL(df, server, database, table):
-    connection_string = f'mssql+pyodbc://@{server}/{database}?trusted_connection=yes&driver=ODBC+Driver+17+for+SQL+Server'
-    engine = create_engine(connection_string)
-
-    try:
-        if table == 'engineering':
-            df.to_sql(table, con=engine, if_exists='append', index=False)
-        else: df.to_sql(table, con=engine, if_exists='replace', index=False)
-        print(f"Table{table} written to SQL")
-    except Exception as e:
-        print(f"Error writing to the SQL Server: {e}")
-
 if __name__ == '__main__':
     customer_path = 'Data/customer.csv'
     loan_path = 'Data/book.csv'
@@ -88,10 +74,11 @@ if __name__ == '__main__':
                      'Num Records': cust_na_dropcount})
 
     fileSaver(customers,'customers_clean.csv')
-    writeToSQL(customers, server, database, table='customer_bronze')
+    valid_cust = len(customers)
+    print(f"{valid_cust} valid customers imported: \n{customers}")
 
     eng_df = pd.DataFrame(eng_msgs)
-    writeToSQL(eng_df, server, database, table='engineering')
+    print(f"Engineering messages added: \n{eng_df}")
 
     # Loan data
     entity = 'loan'
@@ -131,7 +118,8 @@ if __name__ == '__main__':
                 'Num Records': loans_valid_dropcount})   
 
     fileSaver(loans, 'loans_clean.csv')
-    writeToSQL(loans, server, database, table='loan_bronze')
+    valid_loans = len(loans)
+    print(f"{valid_loans} valid loans imported: \n{loans}")
 
     eng_df = pd.DataFrame(eng_msgs)
-    writeToSQL(eng_df, server, database, table='engineering')
+    print(f"Engineering messages added: \n{eng_df}")
