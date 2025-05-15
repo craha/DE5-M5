@@ -26,3 +26,5 @@ Valid loans and customers are saved to loans_bronze and customers_bronze tables 
 Number of dropped rows by category for each entity (loan and customer) are stored in an engineering table in the database.
 
 The results of the data import can be seen in the Power BI dashboard.
+
+Demo implementation of Docker has been done, without the database connection. This could be further enhanced with a separate database image.
